@@ -1,0 +1,41 @@
+# Явный networks: не нужен — сервисы одного compose-файла по умолчанию
+# оказываются в общей bridge-сети и видят друг друга по имени сервиса
+# (см. TRAIN_INFERENCE_URL=http://inference:8000 в .env).
+services:
+  inference:
+    build:
+      context: .
+      dockerfile: src/inference/Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Регистр моделей общий между Inference и Train — том, а не bake в
+      # образ, иначе Inference не увидел бы новые версии без пересборки.
+      - ./model_registry:/app/model_registry
+    restart: unless-stopped
+
+  train:
+    build:
+      context: .
+      dockerfile: src/train/Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./model_registry:/app/model_registry
+    # GPU passthrough (Docker Desktop сам прокидывает его через WSL2-backend
+    # на Windows — отдельно ставить nvidia-container-toolkit на хост не
+    # нужно). Современный синтаксис Compose V2, работает и без Swarm.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # Просто документирует намерение: `docker compose run --rm train`
+    # игнорирует restart-политику, реальное самовыключение обеспечивает --rm
+    # (см. scripts/train.ps1 / train.sh).
+    restart: "no"

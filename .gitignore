@@ -38,7 +38,9 @@ logs/
 htmlcov/
 .mypy_cache/
 .ruff_cache/
-tests/
+
+# --- Черновики ---
+src/train/2del_mytries/
 
 # --- IDE / OS ---
 .vscode/

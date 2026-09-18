@@ -1,0 +1,48 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# --- Env / секреты ---
+.env
+.env.*
+!.env.example
+
+# --- Данные ---
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# --- Модели / регистр (артефакты не хранятся в git) ---
+model_registry/models/*
+!model_registry/models/.gitkeep
+model_registry/registry.json
+
+# --- Логи ---
+*.log
+logs/
+
+# --- Тесты / покрытие ---
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+tests/
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.claude/

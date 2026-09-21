@@ -136,12 +136,20 @@ def train_model(
     accum_steps: int,
     early_stop_patience: int,
     freeze_base: bool = False,
+    min_delta: float = 1e-3,
 ) -> dict:
     """
     Обучает model in-place. Ранняя остановка следит за val loss: если он не
     улучшается `early_stop_patience` эпох подряд — обучение прерывается, а в
     модель в конце загружаются веса ЛУЧШЕЙ (не последней) эпохи по val loss,
     чтобы на диск в итоге не сохранилась переобученная версия.
+
+    `min_delta` — минимальное снижение val loss, которое считается реальным
+    улучшением. Без него на плато loss иногда еле заметно колеблется (шум
+    bf16/порядка обхода батчей), и формальное "val_loss < best_val_loss" на
+    долю процента бесконечно сбрасывает счётчик патиенса — early stopping
+    в итоге не срабатывает вообще, даже если модель фактически перестала
+    учиться десятки эпох назад.
 
     `freeze_base=True` замораживает энкодер и обучает только классификационную
     голову (см. `freeze_base_model`) — быстрее и требует меньше памяти, но
@@ -182,7 +190,7 @@ def train_model(
             extra={"epoch": epoch, "train_loss": train_loss, "val_loss": val_loss},
         )
 
-        if val_loss < best_val_loss:
+        if val_loss < best_val_loss - min_delta:
             best_val_loss = val_loss
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
             epochs_without_improvement = 0

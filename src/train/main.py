@@ -72,10 +72,14 @@ def run_training_pipeline(
     accum_steps = accum_steps or settings.train_accum_steps
     epochs = epochs if epochs is not None else settings.train_epochs
     early_stop = early_stop if early_stop is not None else settings.train_early_stop
-    lr = lr or settings.train_lr
     warmup_frac = warmup_frac if warmup_frac is not None else settings.train_warmup_frac
     weight_decay = weight_decay if weight_decay is not None else settings.train_weight_decay
     freeze_base = freeze_base if freeze_base is not None else settings.train_freeze_base
+    # train_lr подобран под full fine-tuning всей сети — при freeze_base=True
+    # обучается только голова, и для неё нужен свой (кратно больший) LR, см.
+    # train_freeze_lr в common/config.py.
+    default_lr = settings.train_freeze_lr if freeze_base else settings.train_lr
+    lr = lr if lr is not None else default_lr
 
     _set_seed(settings.train_seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -113,7 +117,6 @@ def run_training_pipeline(
         # переинициализируем голову под наше число классов.
         ignore_mismatched_sizes=True,
     )
-    model
     model.to(device)
 
     train_model(

@@ -38,7 +38,7 @@ logs/
 htmlcov/
 .mypy_cache/
 .ruff_cache/
-.tests
+tests/
 
 # --- Черновики ---
 src/train/2del_mytries/
